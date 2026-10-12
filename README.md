@@ -35,7 +35,7 @@ Download `Kotoba-Studio-macOS-Apple-Silicon.dmg` from the latest GitHub Release,
 
 ## Run in development
 
-Requirements: macOS, Node.js 20 or newer, pnpm, Rust, and Xcode Command Line Tools.
+Requirements: macOS, Node.js 24 or newer, pnpm, Rust, and Xcode Command Line Tools.
 
 ```bash
 pnpm install
