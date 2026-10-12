@@ -34,7 +34,8 @@
     "longDescription": "Learn Japanese vocabulary through focused lessons, quizzes, statistics and personal word lists.",
     "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns"],
     "macOS": {
-      "minimumSystemVersion": "11.0"
+      "minimumSystemVersion": "11.0",
+      "signingIdentity": "-"
     }
   }
 }
