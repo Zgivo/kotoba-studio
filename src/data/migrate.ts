@@ -1,7 +1,8 @@
 import type { AppSnapshot } from '../domain/types';
+import { calculateMastery } from '../domain/learning';
 import { initialSnapshot } from './seed';
 
-const CURRENT_CONTENT_VERSION = 4;
+const CURRENT_CONTENT_VERSION = 5;
 const LESSONS_V2 = new Set(['lesson-5', 'lesson-6', 'lesson-7', 'lesson-8', 'lesson-9', 'lesson-10']);
 const CATEGORIES_V2 = new Set(['transport', 'communication', 'descriptions', 'positions']);
 const LESSONS_V3 = new Set(Array.from({ length: 15 }, (_, index) => `lesson-${index + 11}`));
@@ -37,6 +38,11 @@ export function migrateSnapshot(saved: AppSnapshot): AppSnapshot {
   let next = saved;
   if (version < 2) next = appendContent(next, LESSONS_V2, CATEGORIES_V2);
   if (version < 3) next = appendContent(next, LESSONS_V3, CATEGORIES_V3);
+  if (version < 5)
+    next = {
+      ...next,
+      progress: next.progress.map((item) => ({ ...item, masteryLevel: calculateMastery(item) })),
+    };
 
   return {
     ...next,

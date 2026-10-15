@@ -8,19 +8,21 @@ import type {
 } from './types';
 
 export const masteryPolicy = {
-  minimumAttempts: 3,
+  minimumAttempts: 2,
   familiarAccuracy: 0.7,
-  masteredAccuracy: 0.86,
-  masteredRecentCorrectAnswers: 4,
+  masteredAccuracy: 0.8,
+  masteredRecentCorrectAnswers: 3,
 };
 
 export function calculateMastery(progress: VocabularyProgress): MasteryLevel {
   if (progress.shownCount === 0) return 'new';
   const accuracy = progress.correctCount / progress.shownCount;
+  const recent = progress.recentResults.slice(-masteryPolicy.masteredRecentCorrectAnswers);
   if (
-    progress.shownCount >= masteryPolicy.minimumAttempts + 2 &&
+    progress.shownCount >= masteryPolicy.masteredRecentCorrectAnswers &&
     accuracy >= masteryPolicy.masteredAccuracy &&
-    progress.recentResults.slice(-4).every(Boolean)
+    recent.length === masteryPolicy.masteredRecentCorrectAnswers &&
+    recent.every(Boolean)
   )
     return 'mastered';
   if (progress.shownCount >= masteryPolicy.minimumAttempts && accuracy >= masteryPolicy.familiarAccuracy)
@@ -72,13 +74,40 @@ export function filterVocabulary(
     if (config.lessonIds.length && !config.lessonIds.includes(entry.lessonId)) return false;
     if (config.categoryIds.length && !config.categoryIds.some((id) => entry.categoryIds.includes(id))) return false;
     const current = map.get(entry.id);
-    if (config.vocabularyFilter === 'new') return !current || current.masteryLevel === 'new';
-    if (config.vocabularyFilter === 'learning') return current?.masteryLevel === 'learning';
-    if (config.vocabularyFilter === 'mastered') return current?.masteryLevel === 'mastered';
+    const mastery = current ? calculateMastery(current) : 'new';
+    if (config.vocabularyFilter === 'new') return mastery === 'new';
+    if (config.vocabularyFilter === 'learning') return mastery === 'learning';
+    if (config.vocabularyFilter === 'mastered') return mastery === 'mastered';
     if (config.vocabularyFilter === 'mistakes')
       return current?.lastResult === 'incorrect' || Boolean(current?.incorrectCount);
     return true;
   });
+}
+
+function localDayKey(value: string | Date): string {
+  const date = typeof value === 'string' ? new Date(value) : value;
+  if (Number.isNaN(date.getTime())) return '';
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, '0'),
+    String(date.getDate()).padStart(2, '0'),
+  ].join('-');
+}
+
+export function countAnswersForLocalDay(
+  sessions: LearningSession[],
+  currentSession: LearningSession | null,
+  day: Date = new Date(),
+): number {
+  const targetDay = localDayKey(day);
+  const answerIds = new Set<string>();
+  const allSessions = currentSession ? [...sessions, currentSession] : sessions;
+  allSessions.forEach((session) => {
+    session.answers.forEach((answer) => {
+      if (localDayKey(answer.answeredAt) === targetDay) answerIds.add(answer.questionId);
+    });
+  });
+  return answerIds.size;
 }
 
 function shuffle<T>(items: T[]): T[] {

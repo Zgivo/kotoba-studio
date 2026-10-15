@@ -1,5 +1,5 @@
 import { useMemo, useState, type FormEvent } from 'react';
-import { Archive, Edit3, Plus, Search, Trash2, Upload, Volume2 } from 'lucide-react';
+import { Archive, CheckSquare2, Edit3, Plus, Search, Trash2, Upload, Volume2, X } from 'lucide-react';
 import type { ContentStatus, JapaneseScriptType, VocabularyEntry } from '../../domain/types';
 import { speakJapanese } from '../../infrastructure/speech';
 import { useAppStore } from '../../store/app-store';
@@ -7,8 +7,16 @@ import { Badge, Button, Dialog, EmptyState, Field, PageHeader, SelectField } fro
 import { localizedCategoryName, localizedLessonTitle, tr, useI18n } from '../i18n';
 
 export function Editor() {
-  const { vocabulary, lessons, categories, saveVocabulary, saveVocabularyMany, deleteVocabulary, setNotice } =
-    useAppStore();
+  const {
+    vocabulary,
+    lessons,
+    categories,
+    saveVocabulary,
+    saveVocabularyMany,
+    updateVocabularyStatus,
+    deleteVocabulary,
+    setNotice,
+  } = useAppStore();
   const { language, t } = useI18n();
   const [query, setQuery] = useState('');
   const [lessonId, setLessonId] = useState('all');
@@ -16,6 +24,8 @@ export function Editor() {
   const [script, setScript] = useState('all');
   const [editing, setEditing] = useState<VocabularyEntry | 'new' | null>(null);
   const [bulk, setBulk] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkStatus, setBulkStatus] = useState<ContentStatus>('published');
   const filtered = useMemo(
     () =>
       vocabulary
@@ -34,6 +44,26 @@ export function Editor() {
         .sort((a, b) => a.japanese.localeCompare(b.japanese, 'ja')),
     [vocabulary, query, lessonId, status, script],
   );
+  const selected = useMemo(() => new Set(selectedIds), [selectedIds]);
+  const allVisibleSelected = filtered.length > 0 && filtered.every((item) => selected.has(item.id));
+
+  function toggleSelected(id: string) {
+    setSelectedIds((ids) => (ids.includes(id) ? ids.filter((item) => item !== id) : [...ids, id]));
+  }
+  function toggleAllVisible() {
+    const visibleIds = filtered.map((item) => item.id);
+    if (allVisibleSelected) setSelectedIds((ids) => ids.filter((id) => !visibleIds.includes(id)));
+    else setSelectedIds((ids) => [...new Set([...ids, ...visibleIds])]);
+  }
+  function applyBulkStatus() {
+    if (!selectedIds.length) return;
+    const count = selectedIds.length;
+    updateVocabularyStatus(selectedIds, bulkStatus);
+    setSelectedIds([]);
+    setNotice(
+      t(`Статус изменён для ${count} слов.`, `Status updated for ${count} words.`, `${count}語の状態を変更しました。`),
+    );
+  }
   function remove(item: VocabularyEntry) {
     if (
       window.confirm(
@@ -43,8 +73,10 @@ export function Editor() {
           `「${item.japanese}」を削除しますか？この操作は取り消せません。`,
         ),
       )
-    )
+    ) {
       deleteVocabulary(item.id);
+      setSelectedIds((ids) => ids.filter((id) => id !== item.id));
+    }
   }
 
   return (
@@ -113,10 +145,43 @@ export function Editor() {
         </select>
         <span>{t(`${filtered.length} найдено`, `${filtered.length} found`, `${filtered.length}件`)}</span>
       </section>
+      {selectedIds.length > 0 && (
+        <section className="bulk-status-bar" aria-live="polite">
+          <div>
+            <CheckSquare2 size={18} />
+            <strong>
+              {t(`Выбрано: ${selectedIds.length}`, `${selectedIds.length} selected`, `${selectedIds.length}語を選択中`)}
+            </strong>
+          </div>
+          <select
+            value={bulkStatus}
+            onChange={(event) => setBulkStatus(event.target.value as ContentStatus)}
+            aria-label={t('Новый статус выбранных слов', 'New status for selected words', '選択した単語の新しい状態')}
+          >
+            <option value="published">{t('Опубликовано', 'Published', '公開')}</option>
+            <option value="draft">{t('Черновик', 'Draft', '下書き')}</option>
+            <option value="archived">{t('Архив', 'Archived', 'アーカイブ')}</option>
+          </select>
+          <Button onClick={applyBulkStatus}>{t('Применить', 'Apply', '適用')}</Button>
+          <button
+            className="bulk-status-clear"
+            onClick={() => setSelectedIds([])}
+            aria-label={t('Снять выделение', 'Clear selection', '選択を解除')}
+          >
+            <X size={18} />
+          </button>
+        </section>
+      )}
       {filtered.length ? (
         <>
           <div className="word-table">
             <div className="word-table__head">
+              <input
+                type="checkbox"
+                checked={allVisibleSelected}
+                onChange={toggleAllVisible}
+                aria-label={t('Выбрать все найденные слова', 'Select all filtered words', '絞り込み結果をすべて選択')}
+              />
               <span>{t('Слово', 'Word', '単語')}</span>
               <span>{t('Ромадзи', 'Romaji', 'ローマ字')}</span>
               <span>English meaning</span>
@@ -125,7 +190,13 @@ export function Editor() {
               <span />
             </div>
             {filtered.map((item) => (
-              <article key={item.id}>
+              <article key={item.id} className={selected.has(item.id) ? 'is-selected' : undefined}>
+                <input
+                  type="checkbox"
+                  checked={selected.has(item.id)}
+                  onChange={() => toggleSelected(item.id)}
+                  aria-label={t(`Выбрать ${item.japanese}`, `Select ${item.japanese}`, `${item.japanese}を選択`)}
+                />
                 <div className="word-primary">
                   <button
                     onClick={() => {
@@ -177,8 +248,14 @@ export function Editor() {
           </div>
           <div className="mobile-word-list">
             {filtered.map((item) => (
-              <article key={item.id}>
+              <article key={item.id} className={selected.has(item.id) ? 'is-selected' : undefined}>
                 <header>
+                  <input
+                    type="checkbox"
+                    checked={selected.has(item.id)}
+                    onChange={() => toggleSelected(item.id)}
+                    aria-label={t(`Выбрать ${item.japanese}`, `Select ${item.japanese}`, `${item.japanese}を選択`)}
+                  />
                   <div>
                     <strong>{item.japanese}</strong>
                     <span>{item.romaji}</span>

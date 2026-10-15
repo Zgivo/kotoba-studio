@@ -816,7 +816,7 @@ export const seedVocabulary: VocabularyEntry[] = [
 ];
 
 export const initialSnapshot: AppSnapshot = {
-  contentVersion: 4,
+  contentVersion: 5,
   lessons: seedLessons,
   vocabulary: seedVocabulary,
   categories: seedCategories,

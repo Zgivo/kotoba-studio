@@ -32,7 +32,7 @@ describe('content migration', () => {
     expect(migrated.vocabulary).toHaveLength(413);
     expect(migrated.settings.dailyGoal).toBe(23);
     expect(migrated.progress).toEqual(legacy.progress);
-    expect(migrated.contentVersion).toBe(4);
+    expect(migrated.contentVersion).toBe(5);
     expect(migrated.settings.interfaceLanguage).toBe('ru');
     expect(migrated.settings.interfaceTheme).toBe('light');
   });
@@ -43,5 +43,24 @@ describe('content migration', () => {
 
     expect(migrateSnapshot(current)).toBe(current);
     expect(migrateSnapshot(current).lessons.some((lesson) => lesson.id === 'lesson-25')).toBe(false);
+  });
+
+  it('recalculates stored mastery levels with the current policy', () => {
+    const legacy = structuredClone(initialSnapshot);
+    legacy.contentVersion = 4;
+    legacy.progress = [
+      {
+        vocabularyId: 'lesson-1-word-01',
+        shownCount: 3,
+        correctCount: 3,
+        incorrectCount: 0,
+        currentStreak: 3,
+        bestStreak: 3,
+        masteryLevel: 'learning',
+        recentResults: [true, true, true],
+      },
+    ];
+
+    expect(migrateSnapshot(legacy).progress[0].masteryLevel).toBe('mastered');
   });
 });

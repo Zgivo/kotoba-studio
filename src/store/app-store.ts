@@ -1,5 +1,13 @@
 import { create } from 'zustand';
-import type { AppSnapshot, LearningSession, Lesson, SessionAnswer, Settings, VocabularyEntry } from '../domain/types';
+import type {
+  AppSnapshot,
+  ContentStatus,
+  LearningSession,
+  Lesson,
+  SessionAnswer,
+  Settings,
+  VocabularyEntry,
+} from '../domain/types';
 import { initialSnapshot } from '../data/seed';
 import { migrateSnapshot } from '../data/migrate';
 import { clearDatabase, loadSnapshot, saveSnapshot } from '../infrastructure/idb';
@@ -15,6 +23,7 @@ interface AppActions {
   deleteLesson: (id: string) => void;
   saveVocabulary: (entry: VocabularyEntry) => void;
   saveVocabularyMany: (entries: VocabularyEntry[]) => void;
+  updateVocabularyStatus: (ids: string[], status: ContentStatus) => void;
   deleteVocabulary: (id: string) => void;
   setCurrentSession: (session: LearningSession | null) => void;
   recordAnswer: (answer: SessionAnswer) => void;
@@ -93,6 +102,14 @@ export const useAppStore = create<AppStore>((set, get) => ({
   },
   saveVocabularyMany: (entries) => {
     set((state) => ({ vocabulary: [...state.vocabulary, ...entries] }));
+    schedulePersist(get);
+  },
+  updateVocabularyStatus: (ids, status) => {
+    const selected = new Set(ids);
+    const updatedAt = new Date().toISOString();
+    set((state) => ({
+      vocabulary: state.vocabulary.map((item) => (selected.has(item.id) ? { ...item, status, updatedAt } : item)),
+    }));
     schedulePersist(get);
   },
   deleteVocabulary: (id) => {

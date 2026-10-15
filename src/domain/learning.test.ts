@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { calculateMastery, createSession, filterVocabulary, updateProgress } from './learning';
+import { calculateMastery, countAnswersForLocalDay, createSession, filterVocabulary, updateProgress } from './learning';
 import { seedVocabulary } from '../data/seed';
-import type { SessionConfiguration, VocabularyProgress } from './types';
+import type { LearningSession, SessionConfiguration, VocabularyProgress } from './types';
 
 const config: SessionConfiguration = {
   lessonIds: ['lesson-1'],
@@ -34,9 +34,45 @@ describe('learning rules', () => {
 
   it('updates streaks and mastery without UI dependencies', () => {
     let progress: VocabularyProgress | undefined;
-    for (let i = 0; i < 5; i += 1) progress = updateProgress(progress, 'word', true);
-    expect(progress?.bestStreak).toBe(5);
+    progress = updateProgress(progress, 'word', true);
+    progress = updateProgress(progress, 'word', true);
+    expect(calculateMastery(progress)).toBe('familiar');
+    progress = updateProgress(progress, 'word', true);
+    expect(progress.bestStreak).toBe(3);
     expect(calculateMastery(progress!)).toBe('mastered');
     expect(updateProgress(progress, 'word', false).currentStreak).toBe(0);
+  });
+
+  it('counts only unique answers from the current local day', () => {
+    const session = createSession(seedVocabulary.slice(0, 2), { ...config, questionCount: 2 });
+    const today = new Date(2026, 9, 15, 12);
+    const yesterday = new Date(2026, 9, 14, 23, 59).toISOString();
+    const todayAnswer = new Date(2026, 9, 15, 0, 1).toISOString();
+    const completed: LearningSession = {
+      ...session,
+      completedAt: today.toISOString(),
+      answers: [
+        {
+          questionId: `${session.id}-0`,
+          vocabularyId: session.vocabularyIds[0],
+          direction: session.directions[0],
+          submittedAnswer: 'answer',
+          correctAnswer: 'answer',
+          isCorrect: true,
+          answeredAt: yesterday,
+        },
+        {
+          questionId: `${session.id}-1`,
+          vocabularyId: session.vocabularyIds[1],
+          direction: session.directions[1],
+          submittedAnswer: 'answer',
+          correctAnswer: 'answer',
+          isCorrect: true,
+          answeredAt: todayAnswer,
+        },
+      ],
+    };
+
+    expect(countAnswersForLocalDay([completed], completed, today)).toBe(1);
   });
 });

@@ -2,7 +2,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import { ArrowRight, BookOpen, Flame, Play, Volume2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAppStore } from '../../store/app-store';
-import { createSession, filterVocabulary } from '../../domain/learning';
+import { calculateMastery, countAnswersForLocalDay, createSession, filterVocabulary } from '../../domain/learning';
 import type { SessionConfiguration } from '../../domain/types';
 import { speakJapanese } from '../../infrastructure/speech';
 import { Button, PageHeader, ProgressBar, StatCard } from '../components/UI';
@@ -10,11 +10,17 @@ import { localizedLessonDescription, localizedLessonTitle, useI18n } from '../i1
 
 export function Dashboard() {
   const navigate = useNavigate();
-  const { lessons, vocabulary, progress, sessions, setCurrentSession, settings, setNotice } = useAppStore();
+  const { lessons, vocabulary, progress, sessions, currentSession, setCurrentSession, settings, setNotice } =
+    useAppStore();
   const published = vocabulary.filter((item) => item.status === 'published');
-  const mastered = progress.filter((item) => item.masteryLevel === 'mastered').length;
+  const progressById = new Map(progress.map((item) => [item.vocabularyId, item]));
+  const mastered = published.filter((item) => {
+    const wordProgress = progressById.get(item.id);
+    return wordProgress ? calculateMastery(wordProgress) === 'mastered' : false;
+  }).length;
   const totalAnswers = progress.reduce((sum, item) => sum + item.shownCount, 0);
   const totalCorrect = progress.reduce((sum, item) => sum + item.correctCount, 0);
+  const todayAnswers = countAnswersForLocalDay(sessions, currentSession);
   const accuracy = totalAnswers ? Math.round((totalCorrect / totalAnswers) * 100) : 0;
   const recent = sessions[0];
   const { language, t, dateLocale } = useI18n();
@@ -69,10 +75,12 @@ export function Dashboard() {
           </div>
           <div
             className="daily-ring"
-            style={{ '--value': `${Math.min(100, (totalAnswers / settings.dailyGoal) * 100)}%` } as CSSProperties}
+            style={{ '--value': `${Math.min(100, (todayAnswers / settings.dailyGoal) * 100)}%` } as CSSProperties}
           >
-            <strong>{Math.min(totalAnswers, settings.dailyGoal)}</strong>
-            <span>{t(`из ${settings.dailyGoal}`, `of ${settings.dailyGoal}`, `${settings.dailyGoal}問中`)}</span>
+            <strong>{Math.min(todayAnswers, settings.dailyGoal)}</strong>
+            <span>
+              {t(`из ${settings.dailyGoal} сегодня`, `of ${settings.dailyGoal} today`, `本日${settings.dailyGoal}問中`)}
+            </span>
           </div>
           <Button onClick={startQuick}>
             {t('Продолжить', 'Continue', '続ける')} <ArrowRight size={17} />
@@ -125,9 +133,10 @@ export function Dashboard() {
             .sort((a, b) => a.order - b.order)
             .map((lesson, index) => {
               const words = published.filter((item) => item.lessonId === lesson.id);
-              const done = words.filter(
-                (word) => progress.find((item) => item.vocabularyId === word.id)?.masteryLevel === 'mastered',
-              ).length;
+              const done = words.filter((word) => {
+                const wordProgress = progressById.get(word.id);
+                return wordProgress ? calculateMastery(wordProgress) === 'mastered' : false;
+              }).length;
               const sample = words[(index * 3) % Math.max(words.length, 1)];
               return (
                 <article

@@ -1,4 +1,5 @@
 import { AlertTriangle, BarChart3, CalendarDays, Trophy } from 'lucide-react';
+import { calculateMastery } from '../../domain/learning';
 import { useAppStore } from '../../store/app-store';
 import { EmptyState, PageHeader, ProgressBar, StatCard } from '../components/UI';
 import { localizedLessonTitle, useI18n } from '../i18n';
@@ -10,15 +11,16 @@ export function Statistics() {
   const totalShown = progress.reduce((sum, item) => sum + item.shownCount, 0);
   const totalCorrect = progress.reduce((sum, item) => sum + item.correctCount, 0);
   const accuracy = totalShown ? Math.round((totalCorrect / totalShown) * 100) : 0;
+  const progressById = new Map(progress.map((item) => [item.vocabularyId, item]));
+  const masteryFor = (vocabularyId: string) => {
+    const item = progressById.get(vocabularyId);
+    return item ? calculateMastery(item) : 'new';
+  };
   const counts = {
-    new: published.filter(
-      (word) =>
-        !progress.find((item) => item.vocabularyId === word.id) ||
-        progress.find((item) => item.vocabularyId === word.id)?.masteryLevel === 'new',
-    ).length,
-    learning: progress.filter((item) => item.masteryLevel === 'learning').length,
-    familiar: progress.filter((item) => item.masteryLevel === 'familiar').length,
-    mastered: progress.filter((item) => item.masteryLevel === 'mastered').length,
+    new: published.filter((word) => masteryFor(word.id) === 'new').length,
+    learning: published.filter((word) => masteryFor(word.id) === 'learning').length,
+    familiar: published.filter((word) => masteryFor(word.id) === 'familiar').length,
+    mastered: published.filter((word) => masteryFor(word.id) === 'mastered').length,
   };
   const difficult = [...progress]
     .sort((a, b) => b.incorrectCount - a.incorrectCount)
@@ -89,11 +91,7 @@ export function Statistics() {
             <div className="lesson-progress-list">
               {lessons.map((lesson) => {
                 const words = published.filter((item) => item.lessonId === lesson.id);
-                const known = words.filter((item) =>
-                  ['familiar', 'mastered'].includes(
-                    progress.find((p) => p.vocabularyId === item.id)?.masteryLevel ?? '',
-                  ),
-                ).length;
+                const known = words.filter((item) => ['familiar', 'mastered'].includes(masteryFor(item.id))).length;
                 return (
                   <ProgressBar
                     key={lesson.id}
