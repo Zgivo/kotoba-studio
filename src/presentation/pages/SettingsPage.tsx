@@ -31,7 +31,7 @@ export function SettingsPage() {
     const envelope: ExportEnvelope<AppSnapshot> = {
       schemaVersion: 1,
       exportedAt: new Date().toISOString(),
-      applicationVersion: '1.0.1',
+      applicationVersion: '1.0.2',
       data,
     };
     const blob = new Blob([JSON.stringify(envelope, null, 2)], { type: 'application/json' });
