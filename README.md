@@ -1,16 +1,16 @@
 # Kotoba Studio
 
-Kotoba Studio is a focused Japanese vocabulary trainer for studying lesson-based word lists. It combines Japanese writing, romaji pronunciation, English meanings, progress tracking, and a built-in content editor in one calm, offline-friendly application.
+Kotoba Studio is a focused Japanese vocabulary trainer for studying lesson-based word lists. It combines Japanese writing, romaji pronunciation, localized meanings, progress tracking, and a built-in content editor in one calm, offline-friendly application.
 
 The interface is available in Russian, English, and Japanese. Kotoba Studio is packaged as a native macOS desktop application.
 
 ## Features
 
 - 25 structured lessons with 413 vocabulary entries
-- Japanese, romaji, and English study directions
+- Japanese, romaji, and localized Russian or English study directions
 - Mixed and focused practice sessions
 - Per-word mastery, accuracy, streaks, and session history
-- Russian, English, and Japanese interface languages
+- Russian, English, and Japanese interface languages for lessons, vocabulary, and practice
 - Light and dark themes with persistent preferences
 - Local-first storage with no account required
 - JSON backup, import, and content export
