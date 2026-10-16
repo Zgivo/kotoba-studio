@@ -67,9 +67,9 @@ export function Dashboard() {
             <p>
               {t('Сейчас в словаре', 'The dictionary now contains', '辞書には現在')} <strong>{published.length}</strong>{' '}
               {t(
-                'слов. В каждой сессии вы связываете японское написание, ромадзи и английское значение.',
+                'слов. В каждой сессии вы связываете японское написание, ромадзи и русский перевод.',
                 'words. Each session connects Japanese writing, romaji and English meaning.',
-                '語あります。各セッションで日本語表記・ローマ字・英語の意味を結び付けます。',
+                '語あります。各セッションで日本語表記・ローマ字・日本語の意味を結び付けます。',
               )}
             </p>
           </div>

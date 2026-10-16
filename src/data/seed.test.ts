@@ -28,4 +28,16 @@ describe('seed lessons', () => {
       ),
     ).toBe(true);
   });
+
+  it('includes localized Russian meanings for the built-in vocabulary', () => {
+    expect(
+      seedVocabulary
+        .filter((item) => !item.russianMeaning)
+        .map((item) => `${item.id}: ${item.japanese} — ${item.englishMeaning}`),
+    ).toEqual([]);
+    expect(seedVocabulary.find((item) => item.id === 'lesson-1-word-01')?.russianMeaning).toBe(
+      'учитель; преподаватель',
+    );
+    expect(seedVocabulary.find((item) => item.id === 'lesson-25-word-01')?.russianMeaning).toBe('думать; обдумывать');
+  });
 });

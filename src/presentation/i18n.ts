@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import type { InterfaceLanguage, Lesson, VocabularyCategory } from '../domain/types';
+import type { InterfaceLanguage, Lesson, VocabularyCategory, VocabularyEntry } from '../domain/types';
 import { useAppStore } from '../store/app-store';
 
 export function tr(language: InterfaceLanguage, ru: string, en: string, ja: string): string {
@@ -175,4 +175,20 @@ const categoryNames: Record<string, [string, string, string]> = {
 export function localizedCategoryName(category: VocabularyCategory, language: InterfaceLanguage): string {
   const names = categoryNames[category.id];
   return names ? tr(language, ...names) : category.name;
+}
+
+export function localizedWordMeaning(word: VocabularyEntry, language: InterfaceLanguage): string {
+  if (language === 'ru') return word.russianMeaning ?? word.englishMeaning;
+  if (language === 'ja') return word.japaneseMeaning ?? word.japanese;
+  return word.englishMeaning;
+}
+
+export function localizedWordMeaningLabel(language: InterfaceLanguage): string {
+  return tr(language, 'Русский перевод', 'English meaning', '日本語の意味');
+}
+
+export function localizedExampleMeaning(word: VocabularyEntry, language: InterfaceLanguage): string | undefined {
+  if (language === 'ru') return word.exampleRussian;
+  if (language === 'ja') return word.exampleJapaneseMeaning;
+  return word.exampleEnglish;
 }

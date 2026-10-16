@@ -7,7 +7,7 @@ import type { SessionAnswer } from '../../domain/types';
 import { speakJapanese } from '../../infrastructure/speech';
 import { useAppStore } from '../../store/app-store';
 import { Button, EmptyState } from '../components/UI';
-import { localizedLessonTitle, useI18n } from '../i18n';
+import { localizedExampleMeaning, localizedLessonTitle, localizedWordMeaning, useI18n } from '../i18n';
 
 export function Quiz() {
   const navigate = useNavigate();
@@ -101,12 +101,18 @@ export function Quiz() {
     return null;
   }
   const activeWord = current;
+  const directionLabel =
+    direction === 'japanese-to-romaji'
+      ? '日本語 → Romaji'
+      : direction === 'romaji-to-japanese'
+        ? 'Romaji → 日本語'
+        : t('Русский → 日本語', 'English → 日本語', '日本語の意味 → 日本語');
 
   const question = isText
     ? current.japanese
     : direction === 'romaji-to-japanese'
       ? current.romaji
-      : current.englishMeaning;
+      : localizedWordMeaning(current, language);
   const prompt = isText
     ? t('Введите ромадзи', 'Type the romaji', 'ローマ字を入力')
     : direction === 'romaji-to-japanese'
@@ -165,7 +171,7 @@ export function Quiz() {
         <section className="question-card">
           <div className="question-label">
             <span>{prompt}</span>
-            <small>{direction.replaceAll('-', ' → ')}</small>
+            <small>{directionLabel}</small>
           </div>
           <button
             className="question-word"
@@ -250,7 +256,7 @@ function Feedback({
   onNext: () => void;
   isLast: boolean;
 }) {
-  const { t } = useI18n();
+  const { language, t } = useI18n();
   return (
     <div className={`feedback ${answer.isCorrect ? 'feedback--correct' : 'feedback--wrong'}`} aria-live="assertive">
       <div className="feedback-icon">{answer.isCorrect ? <Check /> : <X />}</div>
@@ -262,14 +268,14 @@ function Feedback({
             <Volume2 size={17} />
           </button>
           <p>{current.romaji}</p>
-          <h3>{current.englishMeaning}</h3>
+          <h3>{localizedWordMeaning(current, language)}</h3>
           {current.exampleJapanese && (
             <blockquote>
               <span>{current.exampleJapanese}</span>
               <small>
                 {current.exampleRomaji}
                 <br />
-                {current.exampleEnglish}
+                {localizedExampleMeaning(current, language)}
               </small>
             </blockquote>
           )}

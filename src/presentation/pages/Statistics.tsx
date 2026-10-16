@@ -2,7 +2,7 @@ import { AlertTriangle, BarChart3, CalendarDays, Trophy } from 'lucide-react';
 import { calculateMastery } from '../../domain/learning';
 import { useAppStore } from '../../store/app-store';
 import { EmptyState, PageHeader, ProgressBar, StatCard } from '../components/UI';
-import { localizedLessonTitle, useI18n } from '../i18n';
+import { localizedLessonTitle, localizedWordMeaning, useI18n } from '../i18n';
 
 export function Statistics() {
   const { lessons, vocabulary, progress, sessions } = useAppStore();
@@ -121,7 +121,7 @@ export function Statistics() {
                         <strong>{word.japanese}</strong>
                         <p>
                           {word.romaji}
-                          <small>{word.englishMeaning}</small>
+                          <small>{localizedWordMeaning(word, language)}</small>
                         </p>
                         <b>
                           {t(

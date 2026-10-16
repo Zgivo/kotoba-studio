@@ -2,7 +2,7 @@ import type { AppSnapshot } from '../domain/types';
 import { calculateMastery } from '../domain/learning';
 import { initialSnapshot } from './seed';
 
-const CURRENT_CONTENT_VERSION = 5;
+const CURRENT_CONTENT_VERSION = 6;
 const LESSONS_V2 = new Set(['lesson-5', 'lesson-6', 'lesson-7', 'lesson-8', 'lesson-9', 'lesson-10']);
 const CATEGORIES_V2 = new Set(['transport', 'communication', 'descriptions', 'positions']);
 const LESSONS_V3 = new Set(Array.from({ length: 15 }, (_, index) => `lesson-${index + 11}`));
@@ -43,6 +43,22 @@ export function migrateSnapshot(saved: AppSnapshot): AppSnapshot {
       ...next,
       progress: next.progress.map((item) => ({ ...item, masteryLevel: calculateMastery(item) })),
     };
+  if (version < 6) {
+    const seedById = new Map(initialSnapshot.vocabulary.map((item) => [item.id, item]));
+    next = {
+      ...next,
+      vocabulary: next.vocabulary.map((item) => {
+        const seed = seedById.get(item.id);
+        return seed
+          ? {
+              ...item,
+              russianMeaning: item.russianMeaning ?? seed.russianMeaning,
+              japaneseMeaning: item.japaneseMeaning ?? seed.japaneseMeaning,
+            }
+          : item;
+      }),
+    };
+  }
 
   return {
     ...next,

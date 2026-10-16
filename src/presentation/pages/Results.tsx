@@ -4,7 +4,7 @@ import type { SessionConfiguration } from '../../domain/types';
 import { createSession, filterVocabulary } from '../../domain/learning';
 import { useAppStore } from '../../store/app-store';
 import { Badge, Button, EmptyState, PageHeader } from '../components/UI';
-import { useI18n } from '../i18n';
+import { localizedWordMeaning, useI18n } from '../i18n';
 
 export function Results() {
   const navigate = useNavigate();
@@ -144,7 +144,7 @@ export function Results() {
                       <strong>{word.japanese}</strong>
                       <span>{word.romaji}</span>
                     </div>
-                    <p>{word.englishMeaning}</p>
+                    <p>{localizedWordMeaning(word, language)}</p>
                     <Badge tone="red">
                       {t('Ваш ответ', 'Your answer', 'あなたの回答')}: {answer.submittedAnswer}
                     </Badge>

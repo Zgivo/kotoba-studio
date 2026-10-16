@@ -4,7 +4,14 @@ import type { ContentStatus, JapaneseScriptType, VocabularyEntry } from '../../d
 import { speakJapanese } from '../../infrastructure/speech';
 import { useAppStore } from '../../store/app-store';
 import { Badge, Button, Dialog, EmptyState, Field, PageHeader, SelectField } from '../components/UI';
-import { localizedCategoryName, localizedLessonTitle, tr, useI18n } from '../i18n';
+import {
+  localizedCategoryName,
+  localizedLessonTitle,
+  localizedWordMeaning,
+  localizedWordMeaningLabel,
+  tr,
+  useI18n,
+} from '../i18n';
 
 export function Editor() {
   const {
@@ -33,7 +40,9 @@ export function Editor() {
           const needle = query.trim().toLowerCase();
           const matches =
             !needle ||
-            [item.japanese, item.romaji, item.englishMeaning].some((value) => value.toLowerCase().includes(needle));
+            [item.japanese, item.romaji, item.englishMeaning, item.russianMeaning, item.japaneseMeaning]
+              .filter((value): value is string => Boolean(value))
+              .some((value) => value.toLowerCase().includes(needle));
           return (
             matches &&
             (lessonId === 'all' || item.lessonId === lessonId) &&
@@ -85,9 +94,9 @@ export function Editor() {
         eyebrow={t('Словарь', 'Vocabulary', '辞書')}
         title={t('Редактор материалов', 'Content editor', '教材編集')}
         text={t(
-          `${vocabulary.length} слов · поиск по японскому, ромадзи и английскому значению`,
+          `${vocabulary.length} слов · поиск по японскому, ромадзи и переводу`,
           `${vocabulary.length} words · search Japanese, romaji and English meaning`,
-          `${vocabulary.length}語 · 日本語・ローマ字・英語の意味で検索`,
+          `${vocabulary.length}語 · 日本語・ローマ字・意味で検索`,
         )}
         actions={
           <>
@@ -184,7 +193,7 @@ export function Editor() {
               />
               <span>{t('Слово', 'Word', '単語')}</span>
               <span>{t('Ромадзи', 'Romaji', 'ローマ字')}</span>
-              <span>English meaning</span>
+              <span>{localizedWordMeaningLabel(language)}</span>
               <span>{t('Урок', 'Lesson', 'レッスン')}</span>
               <span>{t('Статус', 'Status', '状態')}</span>
               <span />
@@ -211,7 +220,7 @@ export function Editor() {
                   <small>{scriptLabel(item.scriptType, language)}</small>
                 </div>
                 <span>{item.romaji}</span>
-                <span>{item.englishMeaning}</span>
+                <span>{localizedWordMeaning(item, language)}</span>
                 <span className="lesson-cell">
                   {(() => {
                     const lesson = lessons.find((lesson) => lesson.id === item.lessonId);
@@ -264,7 +273,7 @@ export function Editor() {
                     {statusLabel(item.status, language)}
                   </Badge>
                 </header>
-                <p>{item.englishMeaning}</p>
+                <p>{localizedWordMeaning(item, language)}</p>
                 <small>
                   {(() => {
                     const lesson = lessons.find((lesson) => lesson.id === item.lessonId);
@@ -373,6 +382,8 @@ function WordDialog({
   const [japanese, setJapanese] = useState(entry?.japanese ?? '');
   const [romaji, setRomaji] = useState(entry?.romaji ?? '');
   const [english, setEnglish] = useState(entry?.englishMeaning ?? '');
+  const [russian, setRussian] = useState(entry?.russianMeaning ?? '');
+  const [japaneseMeaning, setJapaneseMeaning] = useState(entry?.japaneseMeaning ?? '');
   const [lessonId, setLessonId] = useState(entry?.lessonId ?? lessons[0]?.id ?? '');
   const [script, setScript] = useState<JapaneseScriptType>(entry?.scriptType ?? 'mixed');
   const [status, setStatus] = useState<ContentStatus>(entry?.status ?? 'draft');
@@ -381,6 +392,8 @@ function WordDialog({
   const [exampleJa, setExampleJa] = useState(entry?.exampleJapanese ?? '');
   const [exampleRo, setExampleRo] = useState(entry?.exampleRomaji ?? '');
   const [exampleEn, setExampleEn] = useState(entry?.exampleEnglish ?? '');
+  const [exampleRu, setExampleRu] = useState(entry?.exampleRussian ?? '');
+  const [exampleMeaningJa, setExampleMeaningJa] = useState(entry?.exampleJapaneseMeaning ?? '');
   const [categoryIds, setCategoryIds] = useState(entry?.categoryIds ?? []);
   const duplicate = allEntries.find(
     (item) => item.id !== entry?.id && item.japanese.trim() === japanese.trim() && item.lessonId === lessonId,
@@ -395,6 +408,8 @@ function WordDialog({
       japanese: japanese.trim(),
       romaji: romaji.trim(),
       englishMeaning: english.trim(),
+      russianMeaning: russian.trim() || undefined,
+      japaneseMeaning: japaneseMeaning.trim() || undefined,
       acceptedRomaji: accepted
         .split(',')
         .map((item) => item.trim())
@@ -405,6 +420,8 @@ function WordDialog({
       exampleJapanese: exampleJa.trim() || undefined,
       exampleRomaji: exampleRo.trim() || undefined,
       exampleEnglish: exampleEn.trim() || undefined,
+      exampleRussian: exampleRu.trim() || undefined,
+      exampleJapaneseMeaning: exampleMeaningJa.trim() || undefined,
       status,
       createdAt: entry?.createdAt ?? now,
       updatedAt: now,
@@ -441,7 +458,22 @@ function WordDialog({
               onChange={(e) => setRomaji(e.target.value)}
               required
             />
-            <Field label="English meaning *" value={english} onChange={(e) => setEnglish(e.target.value)} required />
+            <Field
+              label={t('Английский перевод *', 'English meaning *', '英語の意味 *')}
+              value={english}
+              onChange={(e) => setEnglish(e.target.value)}
+              required
+            />
+            <Field
+              label={t('Русский перевод', 'Russian meaning', 'ロシア語の意味')}
+              value={russian}
+              onChange={(e) => setRussian(e.target.value)}
+            />
+            <Field
+              label={t('Японское объяснение', 'Japanese meaning', '日本語の意味')}
+              value={japaneseMeaning}
+              onChange={(e) => setJapaneseMeaning(e.target.value)}
+            />
             <SelectField
               label={t('Урок', 'Lesson', 'レッスン')}
               value={lessonId}
@@ -506,7 +538,13 @@ function WordDialog({
               <span className="eyebrow">{t('Предпросмотр карточки', 'Card preview', 'カードのプレビュー')}</span>
               <strong>{japanese || '日本語'}</strong>
               <p>{romaji || 'romaji'}</p>
-              <h3>{english || 'English meaning'}</h3>
+              <h3>
+                {language === 'ru'
+                  ? russian || english || 'Русский перевод'
+                  : language === 'ja'
+                    ? japaneseMeaning || japanese || '日本語の意味'
+                    : english || 'English meaning'}
+              </h3>
               {hint && <small>{hint}</small>}
             </div>
             <h3 className="form-subtitle">{t('Пример употребления', 'Usage example', '例文')}</h3>
@@ -524,6 +562,16 @@ function WordDialog({
               label={t('Английский перевод', 'English translation', '英訳')}
               value={exampleEn}
               onChange={(e) => setExampleEn(e.target.value)}
+            />
+            <Field
+              label={t('Русский перевод', 'Russian translation', 'ロシア語訳')}
+              value={exampleRu}
+              onChange={(e) => setExampleRu(e.target.value)}
+            />
+            <Field
+              label={t('Японское объяснение', 'Japanese meaning', '日本語の意味')}
+              value={exampleMeaningJa}
+              onChange={(e) => setExampleMeaningJa(e.target.value)}
             />
           </div>
         </div>

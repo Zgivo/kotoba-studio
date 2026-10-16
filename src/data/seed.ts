@@ -1,4 +1,5 @@
 import type { AppSnapshot, JapaneseScriptType, Lesson, VocabularyCategory, VocabularyEntry } from '../domain/types';
+import { localizeSeedVocabulary } from './word-localizations';
 
 const createdAt = '2026-10-10T00:00:00.000Z';
 
@@ -813,10 +814,10 @@ export const seedVocabulary: VocabularyEntry[] = [
   ...makeEntries('lesson-23', lesson23),
   ...makeEntries('lesson-24', lesson24),
   ...makeEntries('lesson-25', lesson25),
-];
+].map(localizeSeedVocabulary);
 
 export const initialSnapshot: AppSnapshot = {
-  contentVersion: 5,
+  contentVersion: 6,
   lessons: seedLessons,
   vocabulary: seedVocabulary,
   categories: seedCategories,

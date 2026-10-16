@@ -16,6 +16,7 @@ export function Practice() {
   const [count, setCount] = useState<number | 'all'>(10);
   const [filter, setFilter] = useState<SessionConfiguration['vocabularyFilter']>('all');
   const [shuffle, setShuffle] = useState(true);
+  const meaningLanguage = language === 'ru' ? 'Русский' : language === 'en' ? 'English' : '日本語の意味';
   const config = useMemo<SessionConfiguration>(
     () => ({
       lessonIds,
@@ -47,7 +48,7 @@ export function Practice() {
     },
     {
       value: 'english-to-japanese',
-      title: 'English → 日本語',
+      title: `${meaningLanguage} → 日本語`,
       text: t('Выберите слово', 'Choose the word', '単語を選ぶ'),
     },
   ];
@@ -121,9 +122,9 @@ export function Practice() {
                 <h2>{t('Режим', 'Mode', 'モード')}</h2>
                 <p>
                   {t(
-                    'После каждого ответа откроется английское значение.',
+                    'После каждого ответа откроется русский перевод.',
                     'The English meaning appears after every answer.',
-                    '回答後に英語の意味が表示されます。',
+                    '回答後に日本語の意味が表示されます。',
                   )}
                 </p>
               </div>

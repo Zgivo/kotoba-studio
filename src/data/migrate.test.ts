@@ -32,7 +32,7 @@ describe('content migration', () => {
     expect(migrated.vocabulary).toHaveLength(413);
     expect(migrated.settings.dailyGoal).toBe(23);
     expect(migrated.progress).toEqual(legacy.progress);
-    expect(migrated.contentVersion).toBe(5);
+    expect(migrated.contentVersion).toBe(6);
     expect(migrated.settings.interfaceLanguage).toBe('ru');
     expect(migrated.settings.interfaceTheme).toBe('light');
   });
@@ -62,5 +62,20 @@ describe('content migration', () => {
     ];
 
     expect(migrateSnapshot(legacy).progress[0].masteryLevel).toBe('mastered');
+  });
+
+  it('adds localized meanings to existing built-in vocabulary without replacing edits', () => {
+    const legacy = structuredClone(initialSnapshot);
+    legacy.contentVersion = 5;
+    const word = legacy.vocabulary.find((item) => item.id === 'lesson-1-word-01');
+    if (!word) throw new Error('Expected seed word');
+    delete word.russianMeaning;
+    word.englishMeaning = 'custom English wording';
+
+    const migrated = migrateSnapshot(legacy);
+    const localized = migrated.vocabulary.find((item) => item.id === 'lesson-1-word-01');
+
+    expect(localized?.englishMeaning).toBe('custom English wording');
+    expect(localized?.russianMeaning).toBe('учитель; преподаватель');
   });
 });

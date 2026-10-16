@@ -24,6 +24,8 @@ export interface VocabularyEntry {
   japanese: string;
   romaji: string;
   englishMeaning: string;
+  russianMeaning?: string;
+  japaneseMeaning?: string;
   acceptedRomaji: string[];
   scriptType: JapaneseScriptType;
   categoryIds: string[];
@@ -31,6 +33,8 @@ export interface VocabularyEntry {
   exampleJapanese?: string;
   exampleRomaji?: string;
   exampleEnglish?: string;
+  exampleRussian?: string;
+  exampleJapaneseMeaning?: string;
   notes?: string;
   status: ContentStatus;
   createdAt: string;
