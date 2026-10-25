@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { calculateMastery, countAnswersForLocalDay, createSession, filterVocabulary, updateProgress } from './learning';
+import {
+  buildChoices,
+  calculateMastery,
+  countAnswersForLocalDay,
+  createSession,
+  filterVocabulary,
+  updateProgress,
+} from './learning';
 import { seedVocabulary } from '../data/seed';
 import type { LearningSession, SessionConfiguration, VocabularyProgress } from './types';
 
@@ -30,6 +37,16 @@ describe('learning rules', () => {
       'romaji-to-japanese',
       'english-to-japanese',
     ]);
+  });
+
+  it('builds answer choices only from the current word lesson', () => {
+    const lessonWords = seedVocabulary.filter((item) => item.lessonId === 'lesson-20');
+    const choices = buildChoices(lessonWords[0], seedVocabulary);
+
+    expect(lessonWords).toHaveLength(3);
+    expect(choices).toHaveLength(3);
+    expect(choices).toContainEqual(lessonWords[0]);
+    expect(choices.every((item) => item.lessonId === 'lesson-20')).toBe(true);
   });
 
   it('updates streaks and mastery without UI dependencies', () => {

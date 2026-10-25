@@ -25,7 +25,14 @@ export function Quiz() {
   const answered = currentSession?.answers.find(
     (item) => item.questionId === `${currentSession.id}-${currentSession.currentQuestionIndex}`,
   );
-  const pool = useMemo(() => vocabulary.filter((item) => item.status === 'published'), [vocabulary]);
+  const currentLessonId = current?.lessonId;
+  const pool = useMemo(
+    () =>
+      currentLessonId
+        ? vocabulary.filter((item) => item.status === 'published' && item.lessonId === currentLessonId)
+        : [],
+    [currentLessonId, vocabulary],
+  );
   const choices = useMemo(() => (current ? buildChoices(current, pool) : []), [current, pool]);
   const isText = direction === 'japanese-to-romaji';
 

@@ -138,11 +138,8 @@ export function createSession(entries: VocabularyEntry[], config: SessionConfigu
 }
 
 export function buildChoices(current: VocabularyEntry, pool: VocabularyEntry[]): VocabularyEntry[] {
-  const close = pool.filter(
-    (item) =>
-      item.id !== current.id &&
-      (item.lessonId === current.lessonId || item.categoryIds.some((id) => current.categoryIds.includes(id))),
+  const lessonChoices = pool.filter(
+    (item) => item.id !== current.id && item.lessonId === current.lessonId && item.status === 'published',
   );
-  const rest = pool.filter((item) => item.id !== current.id && !close.some((closeItem) => closeItem.id === item.id));
-  return shuffle([current, ...shuffle([...close, ...rest]).slice(0, 3)]);
+  return shuffle([current, ...shuffle(lessonChoices).slice(0, 3)]);
 }
