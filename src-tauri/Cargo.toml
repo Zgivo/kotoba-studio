@@ -1,6 +1,6 @@
 [package]
 name = "kotoba-studio"
-version = "1.0.3"
+version = "1.0.4"
 description = "A focused Japanese vocabulary studio for macOS"
 authors = ["Kotoba Studio"]
 edition = "2021"
