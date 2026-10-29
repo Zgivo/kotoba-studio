@@ -97,6 +97,7 @@ export interface Settings {
   reducedMotion: boolean;
   interfaceLanguage: InterfaceLanguage;
   interfaceTheme: InterfaceTheme;
+  practiceConfiguration: SessionConfiguration;
 }
 
 export interface AppSnapshot {

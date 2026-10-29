@@ -817,7 +817,7 @@ export const seedVocabulary: VocabularyEntry[] = [
 ].map(localizeSeedVocabulary);
 
 export const initialSnapshot: AppSnapshot = {
-  contentVersion: 6,
+  contentVersion: 7,
   lessons: seedLessons,
   vocabulary: seedVocabulary,
   categories: seedCategories,
@@ -830,6 +830,14 @@ export const initialSnapshot: AppSnapshot = {
     reducedMotion: false,
     interfaceLanguage: 'ru',
     interfaceTheme: 'light',
+    practiceConfiguration: {
+      lessonIds: seedLessons.filter((lesson) => lesson.isPublished).map((lesson) => lesson.id),
+      categoryIds: [],
+      quizMode: 'mixed',
+      questionCount: 10,
+      vocabularyFilter: 'all',
+      shuffleQuestions: true,
+    },
   },
   initialized: true,
 };

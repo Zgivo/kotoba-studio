@@ -32,9 +32,10 @@ describe('content migration', () => {
     expect(migrated.vocabulary).toHaveLength(413);
     expect(migrated.settings.dailyGoal).toBe(23);
     expect(migrated.progress).toEqual(legacy.progress);
-    expect(migrated.contentVersion).toBe(6);
+    expect(migrated.contentVersion).toBe(7);
     expect(migrated.settings.interfaceLanguage).toBe('ru');
     expect(migrated.settings.interfaceTheme).toBe('light');
+    expect(migrated.settings.practiceConfiguration.questionCount).toBe(10);
   });
 
   it('does not restore content deleted after the migration', () => {
@@ -77,5 +78,17 @@ describe('content migration', () => {
 
     expect(localized?.englishMeaning).toBe('custom English wording');
     expect(localized?.russianMeaning).toBe('учитель; преподаватель');
+  });
+
+  it('moves the removed Japanese interface option to English and adds a saved practice setup', () => {
+    const legacy = structuredClone(initialSnapshot);
+    legacy.contentVersion = 6;
+    legacy.settings.interfaceLanguage = 'ja';
+    delete (legacy.settings as Partial<typeof legacy.settings>).practiceConfiguration;
+
+    const migrated = migrateSnapshot(legacy);
+
+    expect(migrated.settings.interfaceLanguage).toBe('en');
+    expect(migrated.settings.practiceConfiguration).toEqual(initialSnapshot.settings.practiceConfiguration);
   });
 });

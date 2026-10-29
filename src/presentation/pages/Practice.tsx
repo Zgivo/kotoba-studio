@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { ArrowRight, Check, Shuffle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { QuizMode, SessionConfiguration } from '../../domain/types';
@@ -10,24 +10,14 @@ import { localizedLessonTitle, useI18n } from '../i18n';
 export function Practice() {
   const navigate = useNavigate();
   const { language, t } = useI18n();
-  const { lessons, vocabulary, progress, setCurrentSession } = useAppStore();
-  const [lessonIds, setLessonIds] = useState(lessons.filter((item) => item.isPublished).map((item) => item.id));
-  const [mode, setMode] = useState<QuizMode>('mixed');
-  const [count, setCount] = useState<number | 'all'>(10);
-  const [filter, setFilter] = useState<SessionConfiguration['vocabularyFilter']>('all');
-  const [shuffle, setShuffle] = useState(true);
+  const { lessons, vocabulary, progress, setCurrentSession, settings, updateSettings } = useAppStore();
+  const config = settings.practiceConfiguration;
+  const lessonIds = config.lessonIds;
+  const mode = config.quizMode;
+  const count = config.questionCount;
+  const filter = config.vocabularyFilter;
+  const shuffle = config.shuffleQuestions;
   const meaningLanguage = language === 'ru' ? 'Русский' : language === 'en' ? 'English' : '日本語の意味';
-  const config = useMemo<SessionConfiguration>(
-    () => ({
-      lessonIds,
-      categoryIds: [],
-      quizMode: mode,
-      questionCount: count,
-      vocabularyFilter: filter,
-      shuffleQuestions: shuffle,
-    }),
-    [lessonIds, mode, count, filter, shuffle],
-  );
   const available = useMemo(() => filterVocabulary(vocabulary, progress, config), [vocabulary, progress, config]);
   const actual = count === 'all' ? available.length : Math.min(available.length, count);
   const modes: { value: QuizMode; title: string; text: string }[] = [
@@ -53,8 +43,13 @@ export function Practice() {
     },
   ];
 
+  function updateConfiguration(patch: Partial<SessionConfiguration>) {
+    updateSettings({ practiceConfiguration: { ...config, ...patch } });
+  }
   function toggleLesson(id: string) {
-    setLessonIds((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]));
+    updateConfiguration({
+      lessonIds: lessonIds.includes(id) ? lessonIds.filter((item) => item !== id) : [...lessonIds, id],
+    });
   }
   function start() {
     if (!available.length) return;
@@ -90,10 +85,16 @@ export function Practice() {
               </div>
             </div>
             <div className="select-all-row">
-              <button onClick={() => setLessonIds(lessons.filter((item) => item.isPublished).map((item) => item.id))}>
+              <button
+                onClick={() =>
+                  updateConfiguration({ lessonIds: lessons.filter((item) => item.isPublished).map((item) => item.id) })
+                }
+              >
                 {t('Выбрать все', 'Select all', 'すべて選択')}
               </button>
-              <button onClick={() => setLessonIds([])}>{t('Снять выбор', 'Clear selection', '選択を解除')}</button>
+              <button onClick={() => updateConfiguration({ lessonIds: [] })}>
+                {t('Снять выбор', 'Clear selection', '選択を解除')}
+              </button>
             </div>
             <div className="check-grid">
               {lessons.map((lesson) => (
@@ -134,7 +135,7 @@ export function Practice() {
                 <button
                   key={item.value}
                   className={`mode-card ${mode === item.value ? 'is-selected' : ''}`}
-                  onClick={() => setMode(item.value)}
+                  onClick={() => updateConfiguration({ quizMode: item.value })}
                 >
                   <span>{item.title}</span>
                   <small>{item.text}</small>
@@ -156,7 +157,11 @@ export function Practice() {
               <SelectField
                 label={t('Количество', 'Question count', '問題数')}
                 value={String(count)}
-                onChange={(event) => setCount(event.target.value === 'all' ? 'all' : Number(event.target.value))}
+                onChange={(event) =>
+                  updateConfiguration({
+                    questionCount: event.target.value === 'all' ? 'all' : Number(event.target.value),
+                  })
+                }
               >
                 <option value="10">{t('10 вопросов', '10 questions', '10問')}</option>
                 <option value="20">{t('20 вопросов', '20 questions', '20問')}</option>
@@ -165,7 +170,11 @@ export function Practice() {
               <SelectField
                 label={t('Какие слова', 'Which words', '単語の種類')}
                 value={filter}
-                onChange={(event) => setFilter(event.target.value as SessionConfiguration['vocabularyFilter'])}
+                onChange={(event) =>
+                  updateConfiguration({
+                    vocabularyFilter: event.target.value as SessionConfiguration['vocabularyFilter'],
+                  })
+                }
               >
                 <option value="all">{t('Все слова', 'All words', 'すべての単語')}</option>
                 <option value="new">{t('Только новые', 'New only', '新しい単語のみ')}</option>
@@ -175,7 +184,11 @@ export function Practice() {
               </SelectField>
             </div>
             <label className="toggle-row">
-              <input type="checkbox" checked={shuffle} onChange={(event) => setShuffle(event.target.checked)} />
+              <input
+                type="checkbox"
+                checked={shuffle}
+                onChange={(event) => updateConfiguration({ shuffleQuestions: event.target.checked })}
+              />
               <span />
               <Shuffle size={18} />
               <div>

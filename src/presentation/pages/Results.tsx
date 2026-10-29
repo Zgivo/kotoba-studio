@@ -119,15 +119,7 @@ export function Results() {
               <span className="eyebrow">{t('На повторение', 'To review', '復習')}</span>
               <h2>
                 {wrong.length}{' '}
-                {language === 'ja'
-                  ? '語'
-                  : language === 'en'
-                    ? wrong.length === 1
-                      ? 'word'
-                      : 'words'
-                    : wrong.length === 1
-                      ? 'слово'
-                      : 'слова'}
+                {language === 'en' ? (wrong.length === 1 ? 'word' : 'words') : wrong.length === 1 ? 'слово' : 'слова'}
               </h2>
             </div>
             <Button variant="secondary" onClick={repeatMistakes}>

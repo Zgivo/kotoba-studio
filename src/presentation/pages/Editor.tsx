@@ -538,13 +538,7 @@ function WordDialog({
               <span className="eyebrow">{t('Предпросмотр карточки', 'Card preview', 'カードのプレビュー')}</span>
               <strong>{japanese || '日本語'}</strong>
               <p>{romaji || 'romaji'}</p>
-              <h3>
-                {language === 'ru'
-                  ? russian || english || 'Русский перевод'
-                  : language === 'ja'
-                    ? japaneseMeaning || japanese || '日本語の意味'
-                    : english || 'English meaning'}
-              </h3>
+              <h3>{language === 'ru' ? russian || english || 'Русский перевод' : english || 'English meaning'}</h3>
               {hint && <small>{hint}</small>}
             </div>
             <h3 className="form-subtitle">{t('Пример употребления', 'Usage example', '例文')}</h3>

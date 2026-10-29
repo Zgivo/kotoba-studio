@@ -22,7 +22,7 @@ export function Layout() {
   const setNotice = useAppStore((state) => state.setNotice);
   const { language, setLanguage, t } = useI18n();
   const { theme, toggleTheme } = useTheme();
-  const languageIndex = language === 'ru' ? 0 : language === 'en' ? 1 : 2;
+  const languageIndex = language === 'ru' ? 0 : 1;
 
   return (
     <div className="shell">
@@ -39,14 +39,14 @@ export function Layout() {
           role="group"
           aria-label={t('Язык интерфейса', 'Interface language', '表示言語')}
         >
-          {(['ru', 'en', 'ja'] as InterfaceLanguage[]).map((code) => (
+          {(['ru', 'en'] as InterfaceLanguage[]).map((code) => (
             <button
               key={code}
               className={language === code ? 'is-active' : ''}
               onClick={() => setLanguage(code)}
               aria-pressed={language === code}
             >
-              {code === 'ru' ? 'RU' : code === 'en' ? 'EN' : '日本語'}
+              {code === 'ru' ? 'RU' : 'EN'}
             </button>
           ))}
         </div>

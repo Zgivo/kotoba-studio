@@ -6,19 +6,25 @@ export function tr(language: InterfaceLanguage, ru: string, en: string, ja: stri
   return language === 'ru' ? ru : language === 'en' ? en : ja;
 }
 
+export function normalizeInterfaceLanguage(language: InterfaceLanguage): Exclude<InterfaceLanguage, 'ja'> {
+  return language === 'ja' ? 'en' : language;
+}
+
 export function useI18n() {
-  const language = useAppStore((state) => state.settings.interfaceLanguage ?? 'ru');
+  const storedLanguage = useAppStore((state) => state.settings.interfaceLanguage ?? 'ru');
+  const language = normalizeInterfaceLanguage(storedLanguage);
   const updateSettings = useAppStore((state) => state.updateSettings);
 
   useEffect(() => {
     document.documentElement.lang = language;
-  }, [language]);
+    if (storedLanguage !== language) updateSettings({ interfaceLanguage: language });
+  }, [language, storedLanguage, updateSettings]);
 
   return {
     language,
     setLanguage: (next: InterfaceLanguage) => updateSettings({ interfaceLanguage: next }),
     t: (ru: string, en: string, ja: string) => tr(language, ru, en, ja),
-    dateLocale: language === 'ru' ? 'ru-RU' : language === 'ja' ? 'ja-JP' : 'en-US',
+    dateLocale: language === 'ru' ? 'ru-RU' : 'en-US',
   };
 }
 

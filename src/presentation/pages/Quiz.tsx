@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, Check, Volume2, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { buildChoices } from '../../domain/learning';
 import { validateRomaji } from '../../domain/romaji';
 import type { SessionAnswer } from '../../domain/types';
 import { speakJapanese } from '../../infrastructure/speech';
 import { useAppStore } from '../../store/app-store';
-import { Button, EmptyState } from '../components/UI';
+import { Button, Dialog, EmptyState } from '../components/UI';
 import { localizedExampleMeaning, localizedLessonTitle, localizedWordMeaning, useI18n } from '../i18n';
 
 export function Quiz() {
@@ -16,6 +16,7 @@ export function Quiz() {
     useAppStore();
   const [input, setInput] = useState('');
   const [selected, setSelected] = useState('');
+  const [finishDialogOpen, setFinishDialogOpen] = useState(false);
   const fieldRef = useRef<HTMLInputElement>(null);
   const current = currentSession
     ? vocabulary.find((item) => item.id === currentSession.vocabularyIds[currentSession.currentQuestionIndex])
@@ -104,8 +105,7 @@ export function Quiz() {
       </div>
     );
   if (currentSession.completedAt) {
-    navigate('/results');
-    return null;
+    return <Navigate to="/results" replace />;
   }
   const activeWord = current;
   const directionLabel =
@@ -129,18 +129,8 @@ export function Quiz() {
     ((currentSession.currentQuestionIndex + (answered ? 1 : 0)) / currentSession.vocabularyIds.length) * 100;
 
   function finishEarly() {
-    if (
-      window.confirm(
-        t(
-          'Завершить сессию сейчас? Ответы останутся в статистике.',
-          'End the session now? Your answers will remain in statistics.',
-          'セッションを終了しますか？回答は統計に残ります。',
-        ),
-      )
-    ) {
-      completeSession();
-      navigate('/results');
-    }
+    completeSession();
+    navigate('/results');
   }
   function speak() {
     if (!settings.soundEnabled || !speakJapanese(activeWord.japanese))
@@ -170,7 +160,7 @@ export function Quiz() {
             <span style={{ width: `${progress}%` }} />
           </div>
         </div>
-        <button className="finish-link" onClick={finishEarly}>
+        <button className="finish-link" onClick={() => setFinishDialogOpen(true)}>
           {t('Завершить', 'Finish', '終了')}
         </button>
       </header>
@@ -246,6 +236,30 @@ export function Quiz() {
           )}
         </section>
       </main>
+      {finishDialogOpen && (
+        <Dialog
+          title={t('Завершить сессию?', 'Finish this session?', 'セッションを終了しますか？')}
+          onClose={() => setFinishDialogOpen(false)}
+        >
+          <div className="finish-dialog">
+            <p>
+              {t(
+                'Все уже данные ответы останутся в статистике. Неотвеченные вопросы будут пропущены.',
+                'All answers already given will remain in your statistics. Unanswered questions will be skipped.',
+                '回答済みの内容は統計に残り、未回答の問題はスキップされます。',
+              )}
+            </p>
+            <div className="dialog-actions">
+              <Button variant="secondary" onClick={() => setFinishDialogOpen(false)}>
+                {t('Продолжить урок', 'Continue lesson', 'レッスンを続ける')}
+              </Button>
+              <Button variant="danger" onClick={finishEarly}>
+                {t('Завершить', 'Finish', '終了')}
+              </Button>
+            </div>
+          </div>
+        </Dialog>
+      )}
     </div>
   );
 }

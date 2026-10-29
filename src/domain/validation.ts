@@ -81,6 +81,7 @@ const settingsSchema = z.object({
   reducedMotion: z.boolean(),
   interfaceLanguage: z.enum(['ru', 'en', 'ja']).optional(),
   interfaceTheme: z.enum(['light', 'dark']).optional(),
+  practiceConfiguration: sessionConfigurationSchema.optional(),
 });
 
 export const importEnvelopeSchema = z.object({

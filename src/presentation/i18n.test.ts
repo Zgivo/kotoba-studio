@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import type { VocabularyEntry } from '../domain/types';
-import { localizedExampleMeaning, localizedWordMeaning, localizedWordMeaningLabel } from './i18n';
+import {
+  localizedExampleMeaning,
+  localizedWordMeaning,
+  localizedWordMeaningLabel,
+  normalizeInterfaceLanguage,
+} from './i18n';
 
 const word: VocabularyEntry = {
   id: 'word-1',
@@ -23,6 +28,11 @@ const word: VocabularyEntry = {
 };
 
 describe('localized vocabulary', () => {
+  it('falls back to English for the removed Japanese interface option', () => {
+    expect(normalizeInterfaceLanguage('ja')).toBe('en');
+    expect(normalizeInterfaceLanguage('ru')).toBe('ru');
+  });
+
   it.each([
     ['ru', 'учитель', 'Русский перевод', 'Это наш учитель Танака.'],
     ['en', 'teacher', 'English meaning', 'This is Mr Tanaka, our teacher.'],

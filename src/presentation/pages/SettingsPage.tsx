@@ -31,7 +31,7 @@ export function SettingsPage() {
     const envelope: ExportEnvelope<AppSnapshot> = {
       schemaVersion: 1,
       exportedAt: new Date().toISOString(),
-      applicationVersion: '1.0.3',
+      applicationVersion: '1.0.4',
       data,
     };
     const blob = new Blob([JSON.stringify(envelope, null, 2)], { type: 'application/json' });
@@ -80,6 +80,7 @@ export function SettingsPage() {
                 ...data.settings,
                 interfaceLanguage: data.settings.interfaceLanguage ?? store.settings.interfaceLanguage,
                 interfaceTheme: data.settings.interfaceTheme ?? store.settings.interfaceTheme,
+                practiceConfiguration: data.settings.practiceConfiguration ?? store.settings.practiceConfiguration,
               }
             : store.settings,
           initialized: true,
@@ -194,9 +195,9 @@ export function SettingsPage() {
               className="segmented language-settings"
               aria-label={t('Язык интерфейса', 'Interface language', '表示言語')}
             >
-              {(['ru', 'en', 'ja'] as InterfaceLanguage[]).map((code) => (
+              {(['ru', 'en'] as InterfaceLanguage[]).map((code) => (
                 <button key={code} className={language === code ? 'active' : ''} onClick={() => setLanguage(code)}>
-                  {code === 'ru' ? 'Русский' : code === 'en' ? 'English' : '日本語'}
+                  {code === 'ru' ? 'Русский' : 'English'}
                 </button>
               ))}
             </div>

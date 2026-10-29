@@ -2,7 +2,7 @@ import type { AppSnapshot } from '../domain/types';
 import { calculateMastery } from '../domain/learning';
 import { initialSnapshot } from './seed';
 
-const CURRENT_CONTENT_VERSION = 6;
+const CURRENT_CONTENT_VERSION = 7;
 const LESSONS_V2 = new Set(['lesson-5', 'lesson-6', 'lesson-7', 'lesson-8', 'lesson-9', 'lesson-10']);
 const CATEGORIES_V2 = new Set(['transport', 'communication', 'descriptions', 'positions']);
 const LESSONS_V3 = new Set(Array.from({ length: 15 }, (_, index) => `lesson-${index + 11}`));
@@ -59,6 +59,15 @@ export function migrateSnapshot(saved: AppSnapshot): AppSnapshot {
       }),
     };
   }
+  if (version < 7)
+    next = {
+      ...next,
+      settings: {
+        ...next.settings,
+        interfaceLanguage: next.settings.interfaceLanguage === 'ja' ? 'en' : next.settings.interfaceLanguage,
+        practiceConfiguration: next.settings.practiceConfiguration ?? initialSnapshot.settings.practiceConfiguration,
+      },
+    };
 
   return {
     ...next,
@@ -67,6 +76,7 @@ export function migrateSnapshot(saved: AppSnapshot): AppSnapshot {
       ...next.settings,
       interfaceLanguage: next.settings.interfaceLanguage ?? 'ru',
       interfaceTheme: next.settings.interfaceTheme ?? 'light',
+      practiceConfiguration: next.settings.practiceConfiguration ?? initialSnapshot.settings.practiceConfiguration,
     },
   };
 }
